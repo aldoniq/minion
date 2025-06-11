@@ -1,0 +1,12 @@
+{
+  "extension_years": 2,
+  "restaurants": [
+    {
+      "name": "Казбек Бокейхана",
+      "base_url": "https://kazbek-bokeihana.iikoweb.ru",
+      "login": "2020",
+      "password": "2020",
+      "enabled": true
+    }
+  ]
+} 
