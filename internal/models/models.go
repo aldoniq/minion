@@ -1,11 +1,5 @@
 package models
 
-// Конфигурация приложения
-type Config struct {
-	ExtensionYears int          `json:"extension_years"`
-	Restaurants    []Restaurant `json:"restaurants"`
-}
-
 // Ресторан
 type Restaurant struct {
 	Name     string `json:"name"`

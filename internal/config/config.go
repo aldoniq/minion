@@ -1,51 +1,73 @@
 package config
 
 import (
-	"encoding/json"
+	"context"
 	"os"
 
+	"minion/internal/aws"
+	"minion/internal/database"
 	"minion/internal/models"
 )
 
-// LoadConfig загружает конфигурацию из файла
-func LoadConfig(filename string) (*models.Config, error) {
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	var config models.Config
-	if err := json.Unmarshal(data, &config); err != nil {
-		return nil, err
-	}
-
-	// Устанавливаем значение по умолчанию для продления ключей
-	if config.ExtensionYears == 0 {
-		config.ExtensionYears = 2
-	}
-
-	return &config, nil
+// EnvConfig содержит конфигурацию из переменных окружения
+type EnvConfig struct {
+	// Настройки AWS Secrets Manager
+	AWSRegion     string // AWS_REGION
+	AWSSecretName string // AWS_SECRET_NAME
 }
 
-// CreateSampleConfig создает образец конфигурационного файла
-func CreateSampleConfig() error {
-	sampleConfig := models.Config{
-		ExtensionYears: 2,
-		Restaurants: []models.Restaurant{
-			{
-				Name:     "Казбек Бокейхана",
-				BaseURL:  "https://kazbek-bokeihana.iikoweb.ru",
-				Login:    "2020",
-				Password: "2020",
-				Enabled:  true,
-			},
-		},
+// LoadEnvConfig загружает конфигурацию из переменных окружения
+func LoadEnvConfig() *EnvConfig {
+	return &EnvConfig{
+		// Настройки AWS Secrets Manager
+		AWSRegion:     getEnvWithDefault("AWS_REGION", "eu-west-1"),
+		AWSSecretName: getEnvWithDefault("AWS_SECRET_NAME", "ProdEnvs"),
 	}
+}
 
-	data, err := json.MarshalIndent(sampleConfig, "", "  ")
+// LoadRestaurants загружает рестораны из базы данных через AWS Secrets Manager
+func LoadRestaurants(ctx context.Context, envConfig *EnvConfig) ([]*models.Restaurant, error) {
+	// Создаем AWS Secrets Manager клиент
+	awsClient, err := aws.NewSecretsManager(envConfig.AWSRegion)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return os.WriteFile("config.json", data, 0644)
+	// Получаем credentials из AWS
+	dbCredentials, err := awsClient.GetDatabaseCredentials(envConfig.AWSSecretName)
+	if err != nil {
+		return nil, err
+	}
+
+	// Создаем сервис для работы с ресторанами
+	restaurantService, err := database.NewRestaurantService(dbCredentials.DbURL, dbCredentials.DbName)
+	if err != nil {
+		return nil, err
+	}
+	defer restaurantService.Close()
+
+	// Загружаем рестораны из базы данных
+	mongoRestaurants, err := restaurantService.GetActiveIikoRestaurants()
+	if err != nil {
+		return nil, err
+	}
+
+	// Конвертируем в формат для minion
+	var restaurants []*models.Restaurant
+	for _, mongoRestaurant := range mongoRestaurants {
+		restaurant := mongoRestaurant.ToMinion()
+		if restaurant != nil {
+			restaurants = append(restaurants, restaurant)
+		}
+	}
+
+	return restaurants, nil
+}
+
+// getEnvWithDefault получает значение переменной окружения или возвращает значение по умолчанию
+func getEnvWithDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }

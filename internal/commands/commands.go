@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -21,22 +22,23 @@ var ExtendKeysCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("🍌 BELLO! Запуск продления API ключей...")
 
-		cfg, err := config.LoadConfig("config.json")
+		// Получаем рестораны
+		restaurants, extensionYears, err := loadRestaurants()
 		if err != nil {
-			log.Fatal("❌ Ошибка загрузки конфигурации:", err)
+			log.Fatal("❌ Ошибка загрузки ресторанов:", err)
 		}
 
 		totalUpdated := 0
 		successCount := 0
 		failedCount := 0
 
-		for _, restaurant := range cfg.Restaurants {
+		for _, restaurant := range restaurants {
 			if !restaurant.Enabled {
 				fmt.Printf("⏭️  Ресторан %s отключен, пропускаем\n", restaurant.Name)
 				continue
 			}
 
-			updated, err := processExtendKeys(restaurant, cfg.ExtensionYears)
+			updated, err := processExtendKeys(*restaurant, extensionYears)
 			if err != nil {
 				fmt.Printf("❌ Ошибка обработки ресторана %s: %v\n", restaurant.Name, err)
 				failedCount++
@@ -59,22 +61,23 @@ var RefreshMenusCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("🍌 BELLO! Запуск обновления меню...")
 
-		cfg, err := config.LoadConfig("config.json")
+		// Получаем рестораны
+		restaurants, _, err := loadRestaurants()
 		if err != nil {
-			log.Fatal("❌ Ошибка загрузки конфигурации:", err)
+			log.Fatal("❌ Ошибка загрузки ресторанов:", err)
 		}
 
 		totalUpdated := 0
 		successCount := 0
 		failedCount := 0
 
-		for _, restaurant := range cfg.Restaurants {
+		for _, restaurant := range restaurants {
 			if !restaurant.Enabled {
 				fmt.Printf("⏭️  Ресторан %s отключен, пропускаем\n", restaurant.Name)
 				continue
 			}
 
-			updated, err := processRefreshMenus(restaurant)
+			updated, err := processRefreshMenus(*restaurant)
 			if err != nil {
 				fmt.Printf("❌ Ошибка обработки ресторана %s: %v\n", restaurant.Name, err)
 				failedCount++
@@ -87,6 +90,22 @@ var RefreshMenusCmd = &cobra.Command{
 
 		printSummary("меню", successCount, failedCount, totalUpdated)
 	},
+}
+
+// loadRestaurants загружает рестораны из базы данных
+func loadRestaurants() ([]*models.Restaurant, int, error) {
+	fmt.Println("📊 Загрузка ресторанов из базы данных через AWS Secrets Manager...")
+
+	envConfig := config.LoadEnvConfig()
+	restaurants, err := config.LoadRestaurants(context.Background(), envConfig)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	fmt.Printf("🏪 Найдено %d активных iiko ресторанов\n", len(restaurants))
+
+	// Возвращаем дефолтное значение для extension_years
+	return restaurants, 2, nil
 }
 
 // processExtendKeys обрабатывает продление ключей для одного ресторана

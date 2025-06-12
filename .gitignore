@@ -17,17 +17,19 @@
 # Go workspace file
 go.work
 
-# Build directory
+# Build artifacts
 build/
+bin/
+dist/
 
-# IDE
+# IDE specific files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# OS generated files
+# OS specific files
 .DS_Store
 .DS_Store?
 ._*
@@ -36,8 +38,35 @@ build/
 ehthumbs.db
 Thumbs.db
 
-# Logs
+# Environment files
+.env
+.env.local
+.env.production
+
+# Configuration files with credentials (IMPORTANT!)
+config.json
+
+# AWS credentials (should be configured via aws configure)
+.aws/
+
+# Log files
 *.log
 
-# Config with real credentials (keep template)
-config.json.bak 
+# Temporary files
+tmp/
+temp/
+
+# Air live reload
+tmp/
+
+# Database files
+*.db
+*.sqlite
+
+# IDE configuration
+.vscode/settings.json
+.idea/
+
+# macOS
+.AppleDouble
+.LSOverride 
