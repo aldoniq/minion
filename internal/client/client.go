@@ -202,13 +202,13 @@ func (c *IikoClient) GetExternalMenus(sessionID string) (*models.ExternalMenuRes
 // RefreshExternalMenu обновляет внешнее меню
 func (c *IikoClient) RefreshExternalMenu(sessionID string, menuID int) error {
 	refreshData := models.RefreshMenuRequest{
-		RefreshNameAndDescription:       true,
-		RefreshPrice:                    false,
+		RefreshNameAndDescription:       false,
+		RefreshPrice:                    true,
 		RefreshImages:                   false,
-		RefreshModifiersNumber:          false,
-		RefreshNutritionPerHundredGrams: false,
-		RefreshAllergens:                false,
-		RefreshCombos:                   false,
+		RefreshModifiersNumber:          true,
+		RefreshNutritionPerHundredGrams: true,
+		RefreshAllergens:                true,
+		RefreshCombos:                   true,
 	}
 
 	jsonData, _ := json.Marshal(refreshData)
