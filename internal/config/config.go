@@ -11,6 +11,9 @@ import (
 
 // EnvConfig содержит конфигурацию из переменных окружения
 type EnvConfig struct {
+	// Настройки HTTP сервера
+	HTTPPort string // HTTP_PORT
+
 	// Настройки AWS Secrets Manager
 	AWSRegion     string // AWS_REGION
 	AWSSecretName string // AWS_SECRET_NAME
@@ -19,6 +22,9 @@ type EnvConfig struct {
 // LoadEnvConfig загружает конфигурацию из переменных окружения
 func LoadEnvConfig() *EnvConfig {
 	return &EnvConfig{
+		// Настройки HTTP сервера
+		HTTPPort: getEnvWithDefault("HTTP_PORT", "3000"),
+
 		// Настройки AWS Secrets Manager
 		AWSRegion:     getEnvWithDefault("AWS_REGION", "eu-west-1"),
 		AWSSecretName: getEnvWithDefault("AWS_SECRET_NAME", "ProdEnvs"),

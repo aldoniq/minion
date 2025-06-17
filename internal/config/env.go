@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+
 	"github.com/joho/godotenv"
 )
 
@@ -31,6 +32,7 @@ func ValidateEnvConfig(config *EnvConfig) []string {
 // PrintEnvConfig выводит текущую конфигурацию (без секретных данных)
 func PrintEnvConfig(config *EnvConfig) {
 	fmt.Println("🔧 Текущая конфигурация:")
+	fmt.Printf("  🚀 HTTP Port: %s\n", config.HTTPPort)
 	fmt.Printf("  🌍 AWS Region: %s\n", config.AWSRegion)
 	fmt.Printf("  🔑 AWS Secret Name: %s\n", config.AWSSecretName)
 }
