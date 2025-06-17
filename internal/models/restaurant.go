@@ -34,6 +34,7 @@ type IikoCloudConfig struct {
 	Password       string `bson:"password"`
 	IsExternalMenu bool   `bson:"is_external_menu"`
 	ExternalMenuID string `bson:"external_menu_id"`
+	IikoWebDomain  string `bson:"iiko_web_domain"`
 	CustomDomain   string `bson:"custom_domain"`
 }
 
@@ -48,12 +49,12 @@ type RestaurantSettings struct {
 // ToMinion конвертирует RestaurantMongo в Restaurant для minion
 func (r *RestaurantMongo) ToMinion() *Restaurant {
 	// Проверяем, что это iiko ресторан и у него есть необходимые данные
-	if r.PosType != "iiko" || r.IikoCloud.CustomDomain == "" {
+	if r.PosType != "iiko" || r.IikoCloud.IikoWebDomain == "" {
 		return nil
 	}
 
 	// Формируем базовый URL
-	baseURL := "https://" + r.IikoCloud.CustomDomain
+	baseURL := "https://" + r.IikoCloud.IikoWebDomain
 
 	// Создаем Restaurant для minion
 	return &Restaurant{
