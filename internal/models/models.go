@@ -2,11 +2,12 @@ package models
 
 // Ресторан
 type Restaurant struct {
-	Name     string `json:"name"`
-	BaseURL  string `json:"base_url"`
-	Login    string `json:"login"`
-	Password string `json:"password"`
-	Enabled  bool   `json:"enabled"`
+	Name               string `json:"name"`
+	BaseURL            string `json:"base_url"`
+	Login              string `json:"login"`
+	Password           string `json:"password"`
+	Enabled            bool   `json:"enabled"`
+	IikoExternalMenuId string `json:"iiko_external_menu_id"`
 }
 
 // Запрос авторизации
@@ -17,10 +18,11 @@ type LoginRequest struct {
 
 // API логин
 type ApiLogin struct {
-	ID             string `json:"id"`
-	Name           string `json:"name"`
-	IsActive       bool   `json:"isActive"`
-	ExpirationDate string `json:"expirationDate"`
+	ID             string         `json:"id"`
+	Name           string         `json:"name"`
+	IsActive       bool           `json:"isActive"`
+	ExpirationDate string         `json:"expirationDate"`
+	ExternalMenus  []ExternalMenu `json:"externalMenus"`
 }
 
 // Ответ со списком API логинов
@@ -41,7 +43,7 @@ type ApiLoginDetail struct {
 	ExternalMenus   []ExternalMenu `json:"externalMenus"`
 	PriceCategories []interface{}  `json:"priceCategories"`
 	Email           string         `json:"email"`
-	ExpirationDate  string         `json:"expirationDate"`
+	ExpirationDate  *string        `json:"expirationDate"`
 	IsLongLived     bool           `json:"isLongLived"`
 }
 

@@ -30,8 +30,8 @@ type IikoCloudConfig struct {
 	OrganizationID string `bson:"organization_id"`
 	TerminalID     string `bson:"terminal_id"`
 	Key            string `bson:"key"`
-	Login          string `bson:"login"`
-	Password       string `bson:"password"`
+	Login          string `bson:"iiko_web_login"`
+	Password       string `bson:"iiko_web_password"`
 	IsExternalMenu bool   `bson:"is_external_menu"`
 	ExternalMenuID string `bson:"external_menu_id"`
 	IikoWebDomain  string `bson:"iiko_web_domain"`
@@ -58,11 +58,12 @@ func (r *RestaurantMongo) ToMinion() *Restaurant {
 
 	// Создаем Restaurant для minion
 	return &Restaurant{
-		Name:     r.Name,
-		BaseURL:  baseURL,
-		Login:    r.IikoCloud.Login,
-		Password: r.IikoCloud.Password,
-		Enabled:  !r.IsDeleted && !r.Settings.IsDeleted,
+		Name:               r.Name,
+		BaseURL:            baseURL,
+		Login:              r.IikoCloud.Login,
+		Password:           r.IikoCloud.Password,
+		Enabled:            !r.IsDeleted && !r.Settings.IsDeleted,
+		IikoExternalMenuId: r.IikoCloud.ExternalMenuID,
 	}
 }
 

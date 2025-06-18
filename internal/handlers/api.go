@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"minion/internal/client"
@@ -220,33 +221,42 @@ func processExtendKeys(restaurant models.Restaurant, extensionYears int) (int, e
 
 	updatedCount := 0
 	for _, apiLogin := range response.ApiLogins {
-		if !apiLogin.IsActive {
-			continue
-		}
+		for _, externalMenu := range apiLogin.ExternalMenus {
+			if externalMenu.ID == restaurant.IikoExternalMenuId {
+				if !apiLogin.IsActive {
+					continue
+				}
 
-		// Получаем детальную информацию
-		detailResponse, err := apiClient.GetApiLoginDetail(sessionID, apiLogin.ID)
-		if err != nil {
-			continue
-		}
+				// Получаем детальную информацию
+				detailResponse, err := apiClient.GetApiLoginDetail(sessionID, apiLogin.ID)
+				if err != nil {
+					continue
+				}
 
-		newExpirationDate, err := extendExpirationDate(detailResponse.ApiLoginInfo.ExpirationDate, extensionYears)
-		if err != nil {
-			continue
-		}
+				if detailResponse.ApiLoginInfo.ExpirationDate == nil {
+					continue
+				}
 
-		if newExpirationDate == detailResponse.ApiLoginInfo.ExpirationDate {
-			continue
-		}
+				newExpirationDate, err := extendExpirationDate(*detailResponse.ApiLoginInfo.ExpirationDate, extensionYears)
+				if err != nil {
+					continue
+				}
 
-		// Обновляем дату
-		detailResponse.ApiLoginInfo.ExpirationDate = newExpirationDate
-		err = apiClient.SaveApiLoginDetail(sessionID, detailResponse.ApiLoginInfo)
-		if err != nil {
-			continue
-		}
+				if newExpirationDate == *detailResponse.ApiLoginInfo.ExpirationDate {
+					continue
+				}
 
-		updatedCount++
+				// Обновляем дату
+				detailResponse.ApiLoginInfo.ExpirationDate = &newExpirationDate
+				err = apiClient.SaveApiLoginDetail(sessionID, detailResponse.ApiLoginInfo)
+				if err != nil {
+					continue
+				}
+
+				updatedCount++
+				break
+			}
+		}
 	}
 
 	return updatedCount, nil
@@ -270,14 +280,14 @@ func processRefreshMenus(restaurant models.Restaurant) (int, error) {
 
 	updatedCount := 0
 	for _, menu := range menus.Data {
-		// Обновляем меню
-		err := apiClient.RefreshExternalMenu(sessionID, menu.ID)
-		if err != nil {
-			continue
+		if strconv.Itoa(menu.ID) == restaurant.IikoExternalMenuId {
+			err := apiClient.RefreshExternalMenu(sessionID, menu.ID)
+			if err != nil {
+				continue
+			}
+			updatedCount++
 		}
-		updatedCount++
 	}
-
 	return updatedCount, nil
 }
 

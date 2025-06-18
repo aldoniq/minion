@@ -64,7 +64,7 @@ func (rs *RestaurantService) GetActiveIikoRestaurants() ([]*models.RestaurantMon
 			{"settings.is_deleted": bson.M{"$exists": false}},
 		},
 		// Проверяем что у ресторана есть данные iiko_cloud
-		"iiko_cloud.custom_domain": bson.M{"$ne": ""},
+		"iiko_cloud.iiko_web_domain": bson.M{"$ne": ""},
 	}
 
 	// Выполняем поиск
